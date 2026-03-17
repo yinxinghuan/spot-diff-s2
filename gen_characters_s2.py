@@ -243,7 +243,7 @@ CHARACTERS = [
         ),
         "card_prompt": (
             "detective noir portrait illustration, muscular anime boxer character, "
-            "platinum white hair, strong jawline, athletic build, "
+            "completely bald shaved head NO HAIR, strong jawline, athletic build, "
             "boxing wraps visible, confident fierce expression, "
             "head and shoulders close-up, "
             "vintage detective case file style, warm amber dramatic tones, "
