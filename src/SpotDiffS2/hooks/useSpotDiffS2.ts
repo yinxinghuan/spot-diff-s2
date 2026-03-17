@@ -108,6 +108,7 @@ export function useSpotDiffS2() {
       ...scene,
       charName: contact?.name ?? `Player ${idx + 1}`,
       avatarUrl: contact?.head_url ?? '',
+      telegramId: contact?.telegram_id ?? '',
     };
   });
 

@@ -195,6 +195,13 @@
       pointer-events: none;
       filter: drop-shadow(3px 3px 0 #000);
     }
+
+    &--tappable {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      &:active img { filter: drop-shadow(3px 3px 0 #000) brightness(1.2); }
+    }
   }
 
   &__vn-box {
@@ -611,6 +618,12 @@
       opacity: 0.6;
       pointer-events: none;
       filter: sepia(0.3) brightness(0.7);
+    }
+
+    &--tappable {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      &:active img { filter: sepia(0) brightness(0.9); }
     }
   }
 

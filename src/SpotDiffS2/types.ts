@@ -37,6 +37,8 @@ export interface LevelDef extends SceneDef {
   charName: string;
   /** Remote URL — used directly as <img src> */
   avatarUrl: string;
+  /** Aigram telegram_id — used for AW.PROFILE.OPEN */
+  telegramId: string;
 }
 
 export type GamePhase = 'loading' | 'idle' | 'select' | 'playing' | 'complete' | 'allClear';

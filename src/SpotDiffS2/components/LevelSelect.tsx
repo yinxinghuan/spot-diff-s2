@@ -1,8 +1,8 @@
 import React from 'react';
 import type { LevelDef, SaveData } from '../types';
 import { t } from '../i18n';
+import { openProfile, isInAigram } from '../utils/aigram';
 
-// Scene theme labels shown on cards
 const SCENE_LABELS: Record<string, { zh: string; en: string }> = {
   cafe:    { zh: '咖啡馆', en: 'Café' },
   vinyl:   { zh: '唱片店', en: 'Record Store' },
@@ -21,6 +21,7 @@ interface LevelSelectProps {
 
 const LevelSelect: React.FC<LevelSelectProps> = ({ levels, save, onSelect, onBack }) => {
   const locale = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const inAigram = isInAigram();
 
   return (
     <div className="sd__select">
@@ -36,8 +37,14 @@ const LevelSelect: React.FC<LevelSelectProps> = ({ levels, save, onSelect, onBac
               className={`sd__select-card${unlocked ? '' : ' sd__select-card--locked'}`}
               onPointerDown={unlocked ? () => onSelect(level.id) : undefined}
             >
-              {/* Avatar as card background */}
-              <div className="sd__select-card-bg">
+              {/* Avatar — tappable to open profile in Aigram */}
+              <div
+                className={`sd__select-card-bg${inAigram && level.telegramId ? ' sd__select-card-bg--tappable' : ''}`}
+                onPointerDown={inAigram && level.telegramId ? (e) => {
+                  e.stopPropagation();
+                  openProfile(level.telegramId);
+                } : undefined}
+              >
                 {level.avatarUrl ? (
                   <img src={level.avatarUrl} alt="" draggable={false} />
                 ) : (

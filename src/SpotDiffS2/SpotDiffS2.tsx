@@ -136,6 +136,7 @@ const SpotDiffS2: React.FC = () => {
           <CharBubble
             charName={currentLevel.charName}
             avatarUrl={currentLevel.avatarUrl}
+            telegramId={currentLevel.telegramId}
             text={bubbleText}
             mood={bubbleMood}
             leaving={bubbleLeaving}
