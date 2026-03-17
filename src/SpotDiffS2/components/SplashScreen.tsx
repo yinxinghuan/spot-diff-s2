@@ -8,9 +8,10 @@ const MAX_ASSET_MS = 10000;
 interface SplashScreenProps {
   levels: LevelDef[];
   onDone: () => void;
+  waitFor?: boolean;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ levels, onDone }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({ levels, onDone, waitFor }) => {
   const [posterReady, setPosterReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fading, setFading] = useState(false);
@@ -57,8 +58,8 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ levels, onDone }) => {
   }, [onDone]);
 
   useEffect(() => {
-    if (minDone && assetsDone) triggerFade();
-  }, [minDone, assetsDone, triggerFade]);
+    if (minDone && assetsDone && !waitFor) triggerFade();
+  }, [minDone, assetsDone, waitFor, triggerFade]);
 
   return (
     <div className={`sd-splash${fading ? ' sd-splash--fading' : ''}`}>
