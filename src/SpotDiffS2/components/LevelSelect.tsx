@@ -45,13 +45,7 @@ const LevelSelect: React.FC<LevelSelectProps> = ({ levels, save, onSelect, onBac
                   openProfile(level.telegramId);
                 } : undefined}
               >
-                {level.avatarUrl ? (
-                  <img src={level.avatarUrl} alt="" draggable={false} />
-                ) : (
-                  <div className="sd__select-card-avatar-fallback">
-                    {level.charName.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <img src={level.cardImg} alt="" draggable={false} />
               </div>
               <div className="sd__select-card-info">
                 <div className="sd__select-card-num">{idx + 1}</div>
