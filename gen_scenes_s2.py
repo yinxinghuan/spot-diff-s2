@@ -2,10 +2,10 @@
 """
 Spot the Difference S2 — Scene Base Image Generator
 生成6个场景的 base 图 (780×554)
+Characters: Goat McFisty / Capitan / Chill guy / Last Best / KI_Bo / Bonjour
 """
 
 import datetime, hashlib, hmac, json, os, ssl, sys, time, urllib.request, urllib.parse
-import numpy as np
 from PIL import Image
 from io import BytesIO
 
@@ -60,12 +60,11 @@ def upload_r2(local_path: str, obj_key: str) -> str:
     return url
 
 
-def create_gradient_ref(w: int, h: int, tmp_path: str) -> str:
-    arr = np.zeros((h, w, 3), dtype=np.uint8)
-    for y in range(h):
-        for x in range(w):
-            arr[y, x] = [40 + x * 80 // w, 30 + y * 60 // h, 50]
-    Image.fromarray(arr).save(tmp_path, "PNG")
+def prepare_avatar_ref(avatar_path: str, tmp_path: str) -> str:
+    """Resize avatar to target 780×554 ratio (img2img output matches ref aspect ratio)."""
+    img = Image.open(avatar_path).convert("RGB")
+    img = img.resize((TARGET_W, TARGET_H), Image.LANCZOS)
+    img.save(tmp_path, "PNG")
     return tmp_path
 
 
@@ -74,6 +73,11 @@ def call_api(ref_url: str, prompt: str) -> str:
     req = urllib.request.Request(API_URL, data=payload, headers={"Content-Type": "application/json"}, method="POST")
     resp = urllib.request.urlopen(req, timeout=API_TIMEOUT)
     result = json.loads(resp.read())
+    print(f"  API response code={result.get('code')} msg={result.get('msg','')}")
+    if result.get("code") == 429:
+        raise RuntimeError("Rate limited (429)")
+    if result.get("code") != 200:
+        raise RuntimeError(f"API error: {result}")
     return result.get("image_url") or result.get("url") or result.get("result", {}).get("image_url", "")
 
 
@@ -95,78 +99,115 @@ def download_and_save(url: str, out_path: str):
     raise RuntimeError(f"Failed to download {url}")
 
 
+AVATAR_DIR = "src/SpotDiffS2/img/avatars"
+
 SCENES = [
     {
-        "id": "cafe",
+        # Goat McFisty — dark demon goat, chaotic & mysterious
+        "id": "occult",
+        "avatar": f"{AVATAR_DIR}/occult_avatar.png",
         "prompt": (
-            "cozy indie coffee shop interior, warm afternoon light, "
-            "vintage espresso machine on wooden counter, artisan pastries under glass dome, "
-            "chalkboard menu with handwritten text, small round tables with chairs, "
-            "potted succulents on windowsill, framed indie art on walls, "
-            "hanging Edison bulbs, ceramic coffee grinder, colorful mugs stacked, "
-            "open notebook and pen on table, wood and tile floor, "
-            "detailed interior, rich warm colors, many objects visible"
+            "dark fantasy occult den interior, dimly lit stone chamber, "
+            "tall black candles in silver candelabra casting dramatic shadows, "
+            "mystical books and grimoires stacked on a worn wooden shelf, "
+            "glass potions and bottles glowing green and purple on a stone table, "
+            "animal skull and ram horns displayed on a pedestal, "
+            "tarot cards spread on a velvet cloth, "
+            "ritual circle carved in the floor with glowing runes, "
+            "hanging dried herbs and black feathers, "
+            "ancient leather-bound spellbook open showing arcane symbols, "
+            "red curtains with gold fringe, crystal ball on ornate stand, "
+            "chains and iron rings on stone wall, detailed dark atmospheric interior"
         ),
     },
     {
-        "id": "vinyl",
+        # Capitan — anime military commander, stern and disciplined
+        "id": "command",
+        "avatar": f"{AVATAR_DIR}/command_avatar.png",
         "prompt": (
-            "retro vinyl record shop interior, wall-to-wall shelves packed with vinyl records, "
-            "vintage turntable on wooden listening station with headphones, "
-            "neon RECORDS sign glowing purple on wall, cassette tapes display rack, "
-            "band posters and album art covering walls, vintage amplifier and speakers, "
-            "crate digging bins filled with records, old jukebox in corner, "
-            "string lights, music memorabilia and stickers, wooden floor, "
-            "warm moody lighting, many objects, rich retro atmosphere"
+            "military command center interior, large tactical war table with spread map "
+            "marked with red and blue pins and arrows, "
+            "glass display case with medals and military decorations, "
+            "national flag and unit banner on stands, "
+            "radio equipment and communication devices on wooden desk, "
+            "framed battle portraits and military certificates on wall, "
+            "brass telescope on tripod, leather-bound strategy books, "
+            "wooden chess pieces and battle strategy figurines on table, "
+            "oil lamp and vintage typewriter, stack of sealed dispatches, "
+            "detailed military aesthetic, warm candlelight and window light, "
+            "no people, no characters, no humans, no figures, empty room"
         ),
     },
     {
-        "id": "bar",
+        # Chill guy — bear in denim jacket, relaxed and laid-back
+        "id": "lounge",
+        "avatar": f"{AVATAR_DIR}/lounge_avatar.png",
         "prompt": (
-            "stylish neon night bar interior, backlit glass shelves lined with spirit bottles, "
-            "cocktail glasses and shaker on bar counter, pink neon OPEN sign, "
-            "dimly lit warm atmosphere, bar stools at counter, "
-            "citrus fruits and cocktail garnishes, ice bucket, cocktail menu cards, "
-            "pendant lights, blurred bokeh background lights, "
-            "vintage black and white photos on walls, dark wood and brass details, "
-            "cinematic moody nightlife atmosphere, many bar objects"
+            "cozy relaxed living room interior, large overstuffed sofa with colorful throw pillows, "
+            "flat screen TV on wooden stand with console controllers scattered around, "
+            "coffee table with half-eaten snacks, chips bag, and open soda cans, "
+            "potted succulent and fiddle-leaf fig plant in corners, "
+            "fuzzy rug on hardwood floor, beanbag chair, "
+            "string lights on wall, framed posters of movies and games, "
+            "hoodies and jacket tossed on armchair, "
+            "bookshelf with graphic novels and manga, "
+            "pizza box on side table, TV remote between cushions, "
+            "warm casual atmosphere, soft afternoon light"
         ),
     },
     {
-        "id": "library",
+        # Last Best — elegant elderly gentleman in tuxedo
+        "id": "manor",
+        "avatar": f"{AVATAR_DIR}/manor_avatar.png",
         "prompt": (
-            "cozy private library reading room, floor-to-ceiling dark wooden bookshelves "
-            "packed with colorful hardcover books, vintage globe on oak reading desk, "
-            "leather armchair with plaid throw blanket beside window, "
-            "reading lamp casting warm golden light, open books and papers on desk, "
-            "candles in brass holders, inkwell and quill pen, "
-            "framed certificates and vintage maps on wall, brass telescope, magnifying glass, "
-            "Persian rug on floor, warm amber fireplace glow, rich detailed interior"
+            "grand manor hall interior, marble fireplace with roaring fire, "
+            "ornate gold-framed oil paintings of aristocrats on paneled walls, "
+            "crystal chandelier with warm candlelight above a formal dining table, "
+            "crystal wine glasses and silver candelabra on white tablecloth, "
+            "tall bookshelves with leather-bound classic volumes, "
+            "antique grandfather clock in corner, "
+            "silver tray with tea service on side table, "
+            "detailed carved wooden wainscoting, "
+            "Persian rug on polished herringbone wood floor, "
+            "hunting trophy above mantelpiece, fresh flower arrangement, "
+            "opulent Edwardian atmosphere, rich warm lighting"
         ),
     },
     {
-        "id": "kitchen",
+        # KI_Bo — mystical glowing sage / shaman
+        "id": "temple",
+        "avatar": f"{AVATAR_DIR}/temple_avatar.png",
         "prompt": (
-            "bright modern kitchen interior, colorful fruit bowl with apples and oranges "
-            "on white marble countertop, organized spice rack with labeled jars, "
-            "fresh herb plants in terracotta pots on sunny windowsill, "
-            "sleek silver espresso machine, white ceramic dishes on open shelves, "
-            "cutting board with vegetables, cookbook open on wooden stand, "
-            "hanging copper pots and pans, refrigerator with magnets and notes, "
-            "striped tea towels, wooden utensil holder, natural morning light, "
-            "many kitchen objects, clean fresh atmosphere"
+            "mystical ancient temple meditation chamber, stone walls with carved mandala patterns, "
+            "ornate brass incense burner emitting curling smoke wisps, "
+            "glowing crystal orb on a stone altar pedestal, "
+            "ancient scroll partially unrolled revealing golden text symbols, "
+            "rows of burning oil lamps in brass holders, "
+            "meditation mat and cushion on polished stone floor, "
+            "hanging silk tapestries with sacred geometry, "
+            "wooden shelves with herbs, minerals, and ritual objects, "
+            "small golden Buddha statue, singing bowl and wooden mallet, "
+            "stone water feature trickling softly, "
+            "ethereal warm glow, incense smoke and mystical atmosphere"
         ),
     },
     {
-        "id": "rooftop",
+        # Bonjour — muscular anime boxer, energetic and competitive
+        "id": "gym",
+        "avatar": f"{AVATAR_DIR}/gym_avatar.png",
         "prompt": (
-            "rooftop terrace at night, city skyline with glowing skyscraper lights behind, "
-            "warm fairy string lights draped overhead in zigzag pattern, "
-            "brass telescope on tripod aimed at stars, "
-            "pink and white flowers in terracotta pots, metal bistro chairs and table, "
-            "citronella candles in glass holders, clear starry night sky, "
-            "succulent wall garden on brick wall, hanging paper lanterns, "
-            "wooden deck floor, cozy urban garden atmosphere, many decorative objects"
+            "professional boxing gym interior, heavy punching bags hanging from ceiling chains, "
+            "boxing ring with red and white ropes in background, "
+            "weight rack with dumbbells and barbells lined up neatly, "
+            "championship belt displayed on wooden trophy stand, "
+            "boxing gloves hanging on hook by locker, "
+            "round gym clock on brick wall, "
+            "speed bag platform with leather speed bag, "
+            "jump ropes and resistance bands hanging on hooks, "
+            "motivational posters and fight photos on walls, "
+            "water bottle and white towel on bench, "
+            "dramatic spotlight lighting, sweat and champion atmosphere, "
+            "no people, no characters, no humans, no figures, empty room"
         ),
     },
 ]
@@ -174,22 +215,24 @@ SCENES = [
 
 def main():
     ts = int(time.time() * 1000)
-    tmp_ref = f"/tmp/s2_gradient_ref_{ts}.png"
-    create_gradient_ref(TARGET_W, TARGET_H, tmp_ref)
-    ref_key = f"refs/spot-diff-s2/gradient_{ts}.png"
-    print("Uploading gradient reference...")
-    ref_url = upload_r2(tmp_ref, ref_key)
-    os.remove(tmp_ref)
 
     for i, scene in enumerate(SCENES):
         sid = scene["id"]
         out_path = f"{OUT_DIR}/{sid}/base.png"
 
-        if os.path.exists(out_path) and os.path.getsize(out_path) > 5000:
+        if os.path.exists(out_path) and os.path.getsize(out_path) > 500000:
             print(f"[{i+1}/{len(SCENES)}] {sid}: already exists, skipping")
             continue
 
-        print(f"\n[{i+1}/{len(SCENES)}] Generating {sid}...")
+        # Prepare avatar as reference (resized to target aspect ratio)
+        tmp_ref = f"/tmp/s2_avatar_ref_{sid}_{ts}.png"
+        prepare_avatar_ref(scene["avatar"], tmp_ref)
+        ref_key = f"refs/spot-diff-s2/{sid}_avatar_{ts}.png"
+        print(f"\n[{i+1}/{len(SCENES)}] Uploading avatar ref for {sid}...")
+        ref_url = upload_r2(tmp_ref, ref_key)
+        os.remove(tmp_ref)
+
+        print(f"  Generating scene...")
         result_url = call_api(ref_url, scene["prompt"])
         print(f"  ↓ {result_url}")
         download_and_save(result_url, out_path)

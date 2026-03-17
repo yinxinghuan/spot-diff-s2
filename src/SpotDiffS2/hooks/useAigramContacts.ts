@@ -5,12 +5,12 @@ const MAX_CONTACTS = 6;
 
 /** Demo contacts used when NOT running inside Aigram iframe */
 const DEMO_CONTACTS: AigramContact[] = [
-  { telegram_id: '1', name: 'Algram', head_url: '' },
-  { telegram_id: '2', name: 'Jenny', head_url: '' },
-  { telegram_id: '3', name: 'JM·F', head_url: '' },
-  { telegram_id: '4', name: 'ghostpixel', head_url: '' },
-  { telegram_id: '5', name: 'Isaya', head_url: '' },
-  { telegram_id: '6', name: 'Isabel', head_url: '' },
+  { telegram_id: '1', name: 'Goat McFisty', head_url: '' },
+  { telegram_id: '2', name: 'Capitan', head_url: '' },
+  { telegram_id: '3', name: 'Chill guy', head_url: '' },
+  { telegram_id: '4', name: 'Last Best', head_url: '' },
+  { telegram_id: '5', name: 'KI_Bo', head_url: '' },
+  { telegram_id: '6', name: 'Bonjour', head_url: '' },
 ];
 
 function getUrlParams(): { apiOrigin: string | null; telegramId: string | null } {

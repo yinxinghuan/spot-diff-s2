@@ -4,12 +4,12 @@ import { t } from '../i18n';
 import { openProfile, isInAigram } from '../utils/aigram';
 
 const SCENE_LABELS: Record<string, { zh: string; en: string }> = {
-  cafe:    { zh: '咖啡馆', en: 'Café' },
-  vinyl:   { zh: '唱片店', en: 'Record Store' },
-  bar:     { zh: '酒吧', en: 'Bar' },
-  library: { zh: '图书馆', en: 'Library' },
-  kitchen: { zh: '厨房', en: 'Kitchen' },
-  rooftop: { zh: '屋顶', en: 'Rooftop' },
+  occult:  { zh: '占卜室', en: 'Occult Den' },
+  command: { zh: '指挥室', en: 'Command Room' },
+  lounge:  { zh: '休闲厅', en: 'Lounge' },
+  manor:   { zh: '庄园厅', en: 'Manor Hall' },
+  temple:  { zh: '圣堂', en: 'Temple' },
+  gym:     { zh: '拳馆', en: 'Boxing Gym' },
 };
 
 interface LevelSelectProps {

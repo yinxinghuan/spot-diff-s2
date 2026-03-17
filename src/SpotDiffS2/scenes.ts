@@ -1,77 +1,77 @@
 import type { SceneDef } from './types';
 
-import cafeBase from './img/levels/cafe/base.png';
-import cafeDiff from './img/levels/cafe/diff.png';
-import vinylBase from './img/levels/vinyl/base.png';
-import vinylDiff from './img/levels/vinyl/diff.png';
-import barBase from './img/levels/bar/base.png';
-import barDiff from './img/levels/bar/diff.png';
-import libraryBase from './img/levels/library/base.png';
-import libraryDiff from './img/levels/library/diff.png';
-import kitchenBase from './img/levels/kitchen/base.png';
-import kitchenDiff from './img/levels/kitchen/diff.png';
-import rooftopBase from './img/levels/rooftop/base.png';
-import rooftopDiff from './img/levels/rooftop/diff.png';
+import occultBase from './img/levels/occult/base.png';
+import occultDiff from './img/levels/occult/diff.png';
+import commandBase from './img/levels/command/base.png';
+import commandDiff from './img/levels/command/diff.png';
+import loungeBase from './img/levels/lounge/base.png';
+import loungeDiff from './img/levels/lounge/diff.png';
+import manorBase from './img/levels/manor/base.png';
+import manorDiff from './img/levels/manor/diff.png';
+import templeBase from './img/levels/temple/base.png';
+import templeDiff from './img/levels/temple/diff.png';
+import gymBase from './img/levels/gym/base.png';
+import gymDiff from './img/levels/gym/diff.png';
 
 export const SCENES: SceneDef[] = [
   {
-    id: 'cafe',
-    baseImg: cafeBase,
-    diffImg: cafeDiff,
+    id: 'occult',
+    baseImg: occultBase,
+    diffImg: occultDiff,
     differences: [
-      { id: 'cafe_1', cx: 0.748, cy: 0.855, r: 0.09, label_zh: '记事本', label_en: 'Notebook', emoji: '📓' },
-      { id: 'cafe_2', cx: 0.797, cy: 0.668, r: 0.08, label_zh: '咖啡研磨机', label_en: 'Coffee grinder', emoji: '☕' },
-      { id: 'cafe_3', cx: 0.039, cy: 0.537, r: 0.08, label_zh: '多肉植物', label_en: 'Succulent', emoji: '🌵' },
+      { id: 'occult_1', cx: 0.497, cy: 0.550, r: 0.08, label_zh: '沙漏', label_en: 'Hourglass', emoji: '⏳' },
+      { id: 'occult_2', cx: 0.376, cy: 0.545, r: 0.08, label_zh: '蛇', label_en: 'Snake', emoji: '🐍' },
+      { id: 'occult_3', cx: 0.322, cy: 0.442, r: 0.08, label_zh: '魔法书', label_en: 'Spellbook', emoji: '📖' },
     ],
   },
   {
-    id: 'vinyl',
-    baseImg: vinylBase,
-    diffImg: vinylDiff,
+    id: 'command',
+    baseImg: commandBase,
+    diffImg: commandDiff,
     differences: [
-      { id: 'vinyl_1', cx: 0.271, cy: 0.255, r: 0.16, label_zh: '霓虹招牌', label_en: 'Neon sign', emoji: '🎵' },
-      { id: 'vinyl_2', cx: 0.464, cy: 0.043, r: 0.09, label_zh: '海报', label_en: 'Poster', emoji: '🎸' },
-      { id: 'vinyl_3', cx: 0.570, cy: 0.015, r: 0.08, label_zh: '顶部装饰', label_en: 'Top decor', emoji: '🎶' },
+      { id: 'cmd_1', cx: 0.818, cy: 0.261, r: 0.08, label_zh: '宝剑', label_en: 'Sword', emoji: '⚔️' },
+      { id: 'cmd_2', cx: 0.736, cy: 0.937, r: 0.08, label_zh: '密函', label_en: 'Dispatch', emoji: '📜' },
+      { id: 'cmd_3', cx: 0.275, cy: 0.609, r: 0.08, label_zh: '望远镜', label_en: 'Binoculars', emoji: '🔭' },
     ],
   },
   {
-    id: 'bar',
-    baseImg: barBase,
-    diffImg: barDiff,
+    id: 'lounge',
+    baseImg: loungeBase,
+    diffImg: loungeDiff,
     differences: [
-      { id: 'bar_1', cx: 0.680, cy: 0.079, r: 0.11, label_zh: '霓虹灯牌', label_en: 'Neon sign', emoji: '🍸' },
-      { id: 'bar_2', cx: 0.703, cy: 0.262, r: 0.08, label_zh: '酒架物品', label_en: 'Shelf item', emoji: '🍾' },
-      { id: 'bar_3', cx: 0.354, cy: 0.235, r: 0.08, label_zh: '装饰细节', label_en: 'Bar detail', emoji: '🍋' },
+      { id: 'lounge_1', cx: 0.149, cy: 0.732, r: 0.08, label_zh: '比萨盒', label_en: 'Pizza box', emoji: '🍕' },
+      { id: 'lounge_2', cx: 0.732, cy: 0.160, r: 0.08, label_zh: '抱枕', label_en: 'Cushion', emoji: '🛋️' },
+      { id: 'lounge_3', cx: 0.643, cy: 0.159, r: 0.08, label_zh: '仙人掌', label_en: 'Cactus', emoji: '🌵' },
     ],
   },
   {
-    id: 'library',
-    baseImg: libraryBase,
-    diffImg: libraryDiff,
+    id: 'manor',
+    baseImg: manorBase,
+    diffImg: manorDiff,
     differences: [
-      { id: 'lib_1', cx: 0.858, cy: 0.378, r: 0.08, label_zh: '望远镜', label_en: 'Telescope', emoji: '🔭' },
-      { id: 'lib_2', cx: 0.845, cy: 0.112, r: 0.08, label_zh: '相框', label_en: 'Picture frame', emoji: '🖼️' },
-      { id: 'lib_3', cx: 0.836, cy: 0.269, r: 0.08, label_zh: '书架装饰', label_en: 'Shelf decor', emoji: '📚' },
+      { id: 'manor_1', cx: 0.310, cy: 0.204, r: 0.13, label_zh: '猫咪', label_en: 'Cat', emoji: '🐱' },
+      { id: 'manor_2', cx: 0.766, cy: 0.622, r: 0.08, label_zh: '蜡烛台', label_en: 'Candelabra', emoji: '🕯️' },
+      { id: 'manor_3', cx: 0.216, cy: 0.124, r: 0.08, label_zh: '书', label_en: 'Book', emoji: '📚' },
     ],
   },
   {
-    id: 'kitchen',
-    baseImg: kitchenBase,
-    diffImg: kitchenDiff,
+    id: 'temple',
+    baseImg: templeBase,
+    diffImg: templeDiff,
     differences: [
-      { id: 'kitch_1', cx: 0.145, cy: 0.786, r: 0.12, label_zh: '茶巾', label_en: 'Tea towel', emoji: '🧺' },
-      { id: 'kitch_2', cx: 0.262, cy: 0.452, r: 0.08, label_zh: '水果碗', label_en: 'Fruit bowl', emoji: '🍇' },
-      { id: 'kitch_3', cx: 0.298, cy: 0.890, r: 0.08, label_zh: '窗台植物', label_en: 'Window plant', emoji: '🌿' },
+      { id: 'temple_1', cx: 0.389, cy: 0.347, r: 0.12, label_zh: '水晶球', label_en: 'Crystal orb', emoji: '🔮' },
+      { id: 'temple_2', cx: 0.607, cy: 0.531, r: 0.11, label_zh: '佛像', label_en: 'Buddha statue', emoji: '🪬' },
+      { id: 'temple_3', cx: 0.874, cy: 0.713, r: 0.08, label_zh: '古卷', label_en: 'Ancient scroll', emoji: '📜' },
     ],
   },
   {
-    id: 'rooftop',
-    baseImg: rooftopBase,
-    diffImg: rooftopDiff,
+    id: 'gym',
+    baseImg: gymBase,
+    diffImg: gymDiff,
     differences: [
-      { id: 'roof_1', cx: 0.328, cy: 0.506, r: 0.08, label_zh: '花盆', label_en: 'Flower pot', emoji: '🌸' },
-      { id: 'roof_2', cx: 0.936, cy: 0.235, r: 0.08, label_zh: '灯笼', label_en: 'Lantern', emoji: '🏮' },
-      { id: 'roof_3', cx: 0.809, cy: 0.305, r: 0.08, label_zh: '装饰灯', label_en: 'Fairy lights', emoji: '✨' },
+      { id: 'gym_1', cx: 0.914, cy: 0.825, r: 0.08, label_zh: '毛巾', label_en: 'Towel', emoji: '🏋️' },
+      { id: 'gym_2', cx: 0.443, cy: 0.436, r: 0.08, label_zh: '擂台绳', label_en: 'Ring ropes', emoji: '🥊' },
+      { id: 'gym_3', cx: 0.224, cy: 0.388, r: 0.08, label_zh: '水瓶', label_en: 'Water bottle', emoji: '💧' },
     ],
   },
 ];
