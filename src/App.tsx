@@ -1,10 +1,10 @@
-import { SpotDiff } from './SpotDiff';
+import { SpotDiffS2 } from './SpotDiffS2';
 import './App.less';
 
 function App() {
   return (
     <div className="app">
-      <SpotDiff />
+      <SpotDiffS2 />
     </div>
   );
 }
