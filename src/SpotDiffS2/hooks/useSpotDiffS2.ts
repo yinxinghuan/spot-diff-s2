@@ -51,41 +51,41 @@ const SCENE_DIALOGUE: Record<string, {
   wrong: { zh: string; en: string };
   clear: { zh: string; en: string };
 }> = {
-  cafe: {
-    start: { zh: '这家咖啡馆有什么不一样？', en: 'Something in this café looks off…' },
-    found: { zh: '对！就是这个！', en: 'Yes! That\'s the one!' },
-    wrong: { zh: '这里看起来一样哦~', en: 'Nothing different here~' },
-    clear: { zh: '全找到了！来杯咖啡庆祝！', en: 'All found! Coffee break!' },
+  occult: {
+    start: { zh: '这暗室里有什么被动过？', en: 'Something moved in this dark den...' },
+    found: { zh: '呵，这个骗不了我。', en: 'Heh, can\'t fool me.' },
+    wrong: { zh: '不是这里，凡人。', en: 'Not there, mortal.' },
+    clear: { zh: '全找到了！献给黑暗！', en: 'All found! For the darkness!' },
   },
-  vinyl: {
-    start: { zh: '这家唱片店有人动过东西…', en: 'Something\'s been moved in this record store…' },
-    found: { zh: '好眼力！', en: 'Sharp eyes!' },
-    wrong: { zh: '不是这里…再找找', en: 'Not here… keep looking' },
-    clear: { zh: '完美！像侦探一样！', en: 'Perfect! Just like a detective!' },
+  command: {
+    start: { zh: '情报显示这里有异常…', en: 'Intel says something\'s off here...' },
+    found: { zh: '报告确认！', en: 'Target confirmed!' },
+    wrong: { zh: '重新侦察，士兵。', en: 'Scout again, soldier.' },
+    clear: { zh: '任务完成！全员撤退！', en: 'Mission complete! Fall back!' },
   },
-  bar: {
-    start: { zh: '这个吧台有点奇怪…', en: 'Something\'s off behind this bar…' },
-    found: { zh: '发现了！干杯！', en: 'Found it! Cheers!' },
-    wrong: { zh: '唔，不对啊', en: 'Hmm, that\'s not it' },
-    clear: { zh: '全破解了！最后一轮！', en: 'All solved! One more round!' },
+  lounge: {
+    start: { zh: '好像…有什么不一样？算了先看看', en: 'Hmm... something\'s different? Whatever, let\'s check' },
+    found: { zh: '哦。对哦。', en: 'Oh. Yeah.' },
+    wrong: { zh: '不是这个……再说了也无所谓', en: 'Not this... whatever' },
+    clear: { zh: '找完了。继续躺着。', en: 'Done. Back to chilling.' },
   },
-  library: {
-    start: { zh: '有人动了这里的书架…', en: 'Someone rearranged this library…' },
-    found: { zh: '翻到正确答案了！', en: 'Found the right answer!' },
-    wrong: { zh: '这页没有不同', en: 'No difference on this page' },
-    clear: { zh: '全部解开！博学侦探！', en: 'All done! Brilliant detective!' },
+  manor: {
+    start: { zh: '这厅堂有些不妥，请协助排查。', en: 'Something is amiss in this hall, assist me.' },
+    found: { zh: '好眼力，孺子可教。', en: 'Good eye, well done.' },
+    wrong: { zh: '此处无异，请再仔细些。', en: 'Nothing here, look more carefully.' },
+    clear: { zh: '全部找出，干杯！', en: 'All found, I propose a toast!' },
   },
-  kitchen: {
-    start: { zh: '这厨房好像有点不一样？', en: 'This kitchen looks a bit different…' },
-    found: { zh: '嗯，发现了！', en: 'Found it!' },
-    wrong: { zh: '这里没变化~', en: 'No change here~' },
-    clear: { zh: '全找到了！完美配方！', en: 'All found! Perfect recipe!' },
+  temple: {
+    start: { zh: '此间有扰动…静心感受。', en: 'A disturbance here... clear your mind.' },
+    found: { zh: '善。你已触碰真相。', en: 'Good. You have touched the truth.' },
+    wrong: { zh: '非也。再观察。', en: 'No. Look again.' },
+    clear: { zh: '全数破解。开悟之路已近。', en: 'All revealed. Enlightenment approaches.' },
   },
-  rooftop: {
-    start: { zh: '这个屋顶有什么变化？', en: 'Something changed on this rooftop…' },
-    found: { zh: '找到了！城市的眼睛！', en: 'Found it! Eyes of the city!' },
-    wrong: { zh: '夜色迷人但不是这里', en: 'Beautiful night, but not here' },
-    clear: { zh: '全破案！星光见证你！', en: 'Case closed! Stars witness it all!' },
+  gym: {
+    start: { zh: '这拳馆有什么变了！冲！', en: 'Something changed in the gym! Let\'s go!' },
+    found: { zh: '打中了！', en: 'Hit it!' },
+    wrong: { zh: '出拳失误，再来！', en: 'Missed! Try again!' },
+    clear: { zh: '全中！冠军的眼睛！', en: 'All hits! Champion eyes!' },
   },
 };
 

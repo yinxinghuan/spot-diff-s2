@@ -11,7 +11,7 @@ from PIL import Image
 from scipy import ndimage
 
 LEVELS_DIR = "src/SpotDiffS2/img/levels"
-SCENES = ["cafe", "vinyl", "bar", "library", "kitchen", "rooftop"]
+SCENES = ["occult", "command", "lounge", "manor", "temple", "gym"]
 
 DELTA_THRESH   = 40
 MIN_REGION_PX  = 200
@@ -79,8 +79,8 @@ def main():
     for scene_id, diffs in all_results.items():
         print(f"  // {scene_id}")
         prefix_map = {
-            "cafe": "cafe", "vinyl": "vinyl", "bar": "bar",
-            "library": "lib", "kitchen": "kitch", "rooftop": "roof"
+            "occult": "occult", "command": "cmd", "lounge": "lounge",
+            "manor": "manor", "temple": "temple", "gym": "gym"
         }
         p = prefix_map.get(scene_id, scene_id)
         for j, d in enumerate(diffs):

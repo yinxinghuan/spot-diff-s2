@@ -100,66 +100,91 @@ def download_and_save(url: str, out_path: str):
     raise RuntimeError(f"Failed to download {url}")
 
 
-# Diff prompts: base prompt + specific object changes ("instead of")
+# Diff prompts: copy base prompt exactly, swap 3 specific objects
 DIFF_PROMPTS = {
-    "cafe": (
-        "cozy indie coffee shop interior, warm afternoon light, "
-        "vintage espresso machine on wooden counter, artisan pastries under glass dome, "
-        "chalkboard menu with handwritten text, small round tables with chairs, "
-        "PINK succulent instead of green succulent on windowsill, "
-        "framed indie art on walls, hanging Edison bulbs, "
-        "BLUE ceramic coffee grinder instead of silver coffee grinder, "
-        "colorful mugs stacked, "
-        "ORANGE notebook instead of white notebook on table, "
-        "wood and tile floor, detailed interior, rich warm colors"
+    "occult": (
+        "dark fantasy occult den interior, dimly lit stone chamber, "
+        "tall black candles in silver candelabra casting dramatic shadows, "
+        "mystical books and grimoires stacked on a worn wooden shelf, "
+        "glass potions and bottles on a stone table, "
+        "SNAKE coiled around the pedestal instead of animal skull and ram horns displayed on pedestal, "
+        "tarot cards spread on a velvet cloth, "
+        "ritual circle carved in the floor with glowing runes, "
+        "hanging dried herbs and black feathers, "
+        "ancient leather-bound spellbook CLOSED instead of open showing arcane symbols, "
+        "red curtains with gold fringe, crystal ball on ornate stand, "
+        "HOURGLASS added on the stone table next to potions, "
+        "chains and iron rings on stone wall, detailed dark atmospheric interior"
     ),
-    "vinyl": (
-        "retro vinyl record shop interior, wall-to-wall shelves packed with vinyl records, "
-        "vintage turntable on wooden listening station with headphones, "
-        "RED neon RECORDS sign instead of PURPLE neon sign, "
-        "cassette tapes display rack, band posters and album art covering walls, "
-        "vintage amplifier and speakers, crate digging bins filled with records, "
-        "GREEN jukebox instead of red jukebox in corner, "
-        "string lights, music memorabilia, wooden floor, warm moody lighting"
+    "command": (
+        "military command center interior, large tactical war table with spread map "
+        "marked with red and blue pins and arrows, "
+        "glass display case with medals and military decorations, "
+        "national flag and unit banner on stands, "
+        "radio equipment and communication devices on wooden desk, "
+        "framed battle portraits and military certificates on wall, "
+        "BINOCULARS sitting on desk instead of brass telescope on tripod near the wall, "
+        "leather-bound strategy books stacked, "
+        "SWORD displayed on wall instead of rifle on the wall, "
+        "oil lamp and vintage typewriter, "
+        "OPEN envelope with letter spilling out instead of sealed dispatch on stack, "
+        "detailed military aesthetic, warm candlelight and window light, no people no characters no humans"
     ),
-    "bar": (
-        "stylish neon night bar interior, backlit glass shelves lined with spirit bottles, "
-        "cocktail glasses and shaker on bar counter, "
-        "BLUE neon OPEN sign instead of pink neon sign, "
-        "dimly lit warm atmosphere, bar stools at counter, "
-        "LIME instead of LEMON as garnish on bar counter, "
-        "TALL cylindrical ice bucket instead of round ice bucket, "
-        "cocktail menu cards, pendant lights, "
-        "dark wood and brass details, cinematic moody atmosphere"
+    "lounge": (
+        "cozy relaxed living room interior, large overstuffed sofa with colorful throw pillows, "
+        "flat screen TV on wooden stand with console controllers scattered around, "
+        "coffee table with half-eaten snacks, chips bag, open soda cans, "
+        "potted succulent in corner, fuzzy rug on hardwood floor, beanbag chair, "
+        "string lights on wall, framed posters of movies and games, "
+        "hoodies and jacket tossed on armchair, "
+        "bookshelf with graphic novels and manga, "
+        "ORANGE pizza box instead of white pizza box on side table, "
+        "PURPLE throw pillow instead of blue throw pillow on sofa, "
+        "SMALL cactus instead of succulent in the corner pot, "
+        "warm casual atmosphere, soft afternoon light"
     ),
-    "library": (
-        "cozy private library reading room, floor-to-ceiling dark wooden bookshelves "
-        "packed with colorful hardcover books, vintage globe on oak reading desk, "
-        "leather armchair with plaid throw blanket, reading lamp, "
-        "open books and papers on desk, candles in brass holders, "
-        "inkwell and quill pen, "
-        "BLUE frame around the certificate instead of gold frame, "
-        "vintage maps on wall, SILVER telescope instead of brass telescope, "
-        "magnifying glass, Persian rug, warm amber light"
+    "manor": (
+        "grand manor hall interior, marble fireplace with roaring fire, "
+        "ornate gold-framed oil paintings of aristocrats on paneled walls, "
+        "crystal chandelier with warm candlelight above a formal dining table, "
+        "crystal wine glasses and silver candelabra on white tablecloth, "
+        "tall bookshelves with leather-bound classic volumes, "
+        "antique grandfather clock in corner, "
+        "silver tray with tea service on side table, "
+        "detailed carved wooden wainscoting, "
+        "Persian rug on polished herringbone wood floor, "
+        "CAT sitting on the armchair instead of empty armchair, "
+        "ONE candle missing from the candelabra on the dining table leaving empty holder, "
+        "OPEN book lying on the side table instead of closed book, "
+        "opulent Edwardian atmosphere, rich warm lighting"
     ),
-    "kitchen": (
-        "bright modern kitchen interior, "
-        "PURPLE bowl with grapes instead of colorful fruit bowl on marble countertop, "
-        "organized spice rack with labeled jars, "
-        "PURPLE basil plant instead of green herb plants on windowsill, "
-        "sleek silver espresso machine, white ceramic dishes on open shelves, "
-        "cutting board with vegetables, cookbook open on stand, "
-        "hanging copper pots and pans, refrigerator with magnets, "
-        "RED striped tea towel instead of white tea towel, wooden utensil holder"
+    "temple": (
+        "mystical ancient temple meditation chamber, stone walls with carved mandala patterns, "
+        "ornate brass incense burner emitting curling smoke wisps, "
+        "PURPLE glowing crystal orb instead of clear crystal orb on a stone altar pedestal, "
+        "ancient scroll partially unrolled revealing golden text symbols, "
+        "rows of burning oil lamps in brass holders, "
+        "meditation mat and cushion on polished stone floor, "
+        "hanging silk tapestries with sacred geometry, "
+        "wooden shelves with herbs, minerals, and ritual objects, "
+        "JADE Buddha statue instead of golden Buddha statue, "
+        "singing bowl and wooden mallet, "
+        "BLUE smoke wisps instead of white smoke from incense, "
+        "stone water feature trickling softly, ethereal warm glow"
     ),
-    "rooftop": (
-        "rooftop terrace at night, city skyline with glowing lights, "
-        "warm fairy string lights overhead, "
-        "brass telescope pointing at LOWER ANGLE instead of up, "
-        "YELLOW sunflowers instead of pink flowers in terracotta pots, "
-        "metal bistro chairs and table, citronella candles, starry sky, "
-        "ORANGE paper lanterns instead of white lanterns, "
-        "succulent wall garden, wooden deck floor, cozy urban atmosphere"
+    "gym": (
+        "professional boxing gym interior, heavy punching bags hanging from ceiling chains, "
+        "boxing ring with BLUE and white ropes instead of red and white ropes in background, "
+        "weight rack with dumbbells and barbells lined up neatly, "
+        "championship belt displayed on wooden trophy stand, "
+        "boxing gloves hanging on hook by locker, "
+        "round gym clock on brick wall, "
+        "speed bag platform with leather speed bag, "
+        "jump ropes and resistance bands hanging on hooks, "
+        "motivational posters and fight photos on walls, "
+        "GREEN water bottle instead of red water bottle on bench, "
+        "YELLOW towel instead of white towel on bench, "
+        "dramatic spotlight lighting, sweat and champion atmosphere, no people no characters"
     ),
 }
 
@@ -172,11 +197,11 @@ def main():
         base_path = f"{OUT_DIR}/{sid}/base.png"
         diff_path = f"{OUT_DIR}/{sid}/diff.png"
 
-        if not os.path.exists(base_path) or os.path.getsize(base_path) < 5000:
+        if not os.path.exists(base_path) or os.path.getsize(base_path) < 500000:
             print(f"[{i+1}/{len(scene_ids)}] {sid}: base.png missing or placeholder, run gen_scenes_s2.py first")
             continue
 
-        if os.path.exists(diff_path) and os.path.getsize(diff_path) > 5000:
+        if os.path.exists(diff_path) and os.path.getsize(diff_path) > 500000:
             print(f"[{i+1}/{len(scene_ids)}] {sid}: diff already exists, skipping")
             continue
 
