@@ -17,11 +17,15 @@ export interface DiffRegion {
 
 /** Static scene data — images & differences, no character info */
 export interface SceneDef {
-  /** Scene id, e.g. 'cafe', 'vinyl', 'bar' */
+  /** Scene id, e.g. 'occult', 'command' */
   id: string;
   baseImg: string;
   diffImg: string;
   differences: DiffRegion[];
+  /** Local character illustration (transparent PNG, portrait ratio) */
+  charImg: string;
+  /** Detective-style card portrait (512×512) for level select */
+  cardImg: string;
 }
 
 /** A contact fetched from Aigram API */

@@ -135,6 +135,7 @@ const SpotDiffS2: React.FC = () => {
           {/* VN-style character dialogue overlay */}
           <CharBubble
             charName={currentLevel.charName}
+            charImg={currentLevel.charImg}
             avatarUrl={currentLevel.avatarUrl}
             telegramId={currentLevel.telegramId}
             text={bubbleText}

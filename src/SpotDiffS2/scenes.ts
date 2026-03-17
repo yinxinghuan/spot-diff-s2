@@ -13,11 +13,27 @@ import templeDiff from './img/levels/temple/diff.png';
 import gymBase from './img/levels/gym/base.png';
 import gymDiff from './img/levels/gym/diff.png';
 
+import occultChar from './img/characters/occult.png';
+import commandChar from './img/characters/command.png';
+import loungeChar from './img/characters/lounge.png';
+import manorChar from './img/characters/manor.png';
+import templeChar from './img/characters/temple.png';
+import gymChar from './img/characters/gym.png';
+
+import occultCard from './img/cards/occult.png';
+import commandCard from './img/cards/command.png';
+import loungeCard from './img/cards/lounge.png';
+import manorCard from './img/cards/manor.png';
+import templeCard from './img/cards/temple.png';
+import gymCard from './img/cards/gym.png';
+
 export const SCENES: SceneDef[] = [
   {
     id: 'occult',
     baseImg: occultBase,
     diffImg: occultDiff,
+    charImg: occultChar,
+    cardImg: occultCard,
     differences: [
       { id: 'occult_1', cx: 0.497, cy: 0.550, r: 0.08, label_zh: '沙漏', label_en: 'Hourglass', emoji: '⏳' },
       { id: 'occult_2', cx: 0.376, cy: 0.545, r: 0.08, label_zh: '蛇', label_en: 'Snake', emoji: '🐍' },
@@ -28,6 +44,8 @@ export const SCENES: SceneDef[] = [
     id: 'command',
     baseImg: commandBase,
     diffImg: commandDiff,
+    charImg: commandChar,
+    cardImg: commandCard,
     differences: [
       { id: 'cmd_1', cx: 0.818, cy: 0.261, r: 0.08, label_zh: '宝剑', label_en: 'Sword', emoji: '⚔️' },
       { id: 'cmd_2', cx: 0.736, cy: 0.937, r: 0.08, label_zh: '密函', label_en: 'Dispatch', emoji: '📜' },
@@ -38,6 +56,8 @@ export const SCENES: SceneDef[] = [
     id: 'lounge',
     baseImg: loungeBase,
     diffImg: loungeDiff,
+    charImg: loungeChar,
+    cardImg: loungeCard,
     differences: [
       { id: 'lounge_1', cx: 0.149, cy: 0.732, r: 0.08, label_zh: '比萨盒', label_en: 'Pizza box', emoji: '🍕' },
       { id: 'lounge_2', cx: 0.732, cy: 0.160, r: 0.08, label_zh: '抱枕', label_en: 'Cushion', emoji: '🛋️' },
@@ -48,6 +68,8 @@ export const SCENES: SceneDef[] = [
     id: 'manor',
     baseImg: manorBase,
     diffImg: manorDiff,
+    charImg: manorChar,
+    cardImg: manorCard,
     differences: [
       { id: 'manor_1', cx: 0.310, cy: 0.204, r: 0.13, label_zh: '猫咪', label_en: 'Cat', emoji: '🐱' },
       { id: 'manor_2', cx: 0.766, cy: 0.622, r: 0.08, label_zh: '蜡烛台', label_en: 'Candelabra', emoji: '🕯️' },
@@ -58,6 +80,8 @@ export const SCENES: SceneDef[] = [
     id: 'temple',
     baseImg: templeBase,
     diffImg: templeDiff,
+    charImg: templeChar,
+    cardImg: templeCard,
     differences: [
       { id: 'temple_1', cx: 0.389, cy: 0.347, r: 0.12, label_zh: '水晶球', label_en: 'Crystal orb', emoji: '🔮' },
       { id: 'temple_2', cx: 0.607, cy: 0.531, r: 0.11, label_zh: '佛像', label_en: 'Buddha statue', emoji: '🪬' },
@@ -68,6 +92,8 @@ export const SCENES: SceneDef[] = [
     id: 'gym',
     baseImg: gymBase,
     diffImg: gymDiff,
+    charImg: gymChar,
+    cardImg: gymCard,
     differences: [
       { id: 'gym_1', cx: 0.914, cy: 0.825, r: 0.08, label_zh: '毛巾', label_en: 'Towel', emoji: '🏋️' },
       { id: 'gym_2', cx: 0.443, cy: 0.436, r: 0.08, label_zh: '擂台绳', label_en: 'Ring ropes', emoji: '🥊' },
