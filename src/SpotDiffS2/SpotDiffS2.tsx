@@ -31,6 +31,7 @@ const SpotDiffS2: React.FC = () => {
     cooldown,
     hintTarget,
     levels,
+    contactsLoading,
     goHome,
     goToSelect,
     startLevel,
@@ -39,12 +40,13 @@ const SpotDiffS2: React.FC = () => {
     nextLevel,
   } = useSpotDiffS2();
 
-  // Show splash screen until contacts & assets are loaded
-  if (showSplash || phase === 'loading') {
+  // Show splash until both assets/timer AND contacts are ready
+  if (showSplash) {
     return (
       <SplashScreen
         levels={levels}
         onDone={() => setShowSplash(false)}
+        waitFor={contactsLoading}
       />
     );
   }
