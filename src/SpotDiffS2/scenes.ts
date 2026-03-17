@@ -13,21 +13,15 @@ import kitchenDiff from './img/levels/kitchen/diff.png';
 import rooftopBase from './img/levels/rooftop/base.png';
 import rooftopDiff from './img/levels/rooftop/diff.png';
 
-/**
- * 6 static scenes for Season 2.
- * Differences coordinates are normalized (0-1) and will be updated
- * after images are generated and analyzed via find_diffs.py.
- */
 export const SCENES: SceneDef[] = [
   {
     id: 'cafe',
     baseImg: cafeBase,
     diffImg: cafeDiff,
     differences: [
-      // TODO: fill in after image generation
-      { id: 'cafe_1', cx: 0.25, cy: 0.3, r: 0.12, label_zh: '咖啡杯', label_en: 'Coffee cup', emoji: '☕' },
-      { id: 'cafe_2', cx: 0.7, cy: 0.55, r: 0.12, label_zh: '糕点', label_en: 'Pastry', emoji: '🥐' },
-      { id: 'cafe_3', cx: 0.5, cy: 0.8, r: 0.10, label_zh: '盆栽', label_en: 'Plant', emoji: '🌿' },
+      { id: 'cafe_1', cx: 0.748, cy: 0.855, r: 0.09, label_zh: '记事本', label_en: 'Notebook', emoji: '📓' },
+      { id: 'cafe_2', cx: 0.797, cy: 0.668, r: 0.08, label_zh: '咖啡研磨机', label_en: 'Coffee grinder', emoji: '☕' },
+      { id: 'cafe_3', cx: 0.039, cy: 0.537, r: 0.08, label_zh: '多肉植物', label_en: 'Succulent', emoji: '🌵' },
     ],
   },
   {
@@ -35,9 +29,9 @@ export const SCENES: SceneDef[] = [
     baseImg: vinylBase,
     diffImg: vinylDiff,
     differences: [
-      { id: 'vinyl_1', cx: 0.2, cy: 0.4, r: 0.12, label_zh: '黑胶唱片', label_en: 'Vinyl record', emoji: '💿' },
-      { id: 'vinyl_2', cx: 0.65, cy: 0.25, r: 0.12, label_zh: '霓虹招牌', label_en: 'Neon sign', emoji: '🎵' },
-      { id: 'vinyl_3', cx: 0.4, cy: 0.75, r: 0.10, label_zh: '磁带', label_en: 'Cassette', emoji: '📼' },
+      { id: 'vinyl_1', cx: 0.271, cy: 0.255, r: 0.16, label_zh: '霓虹招牌', label_en: 'Neon sign', emoji: '🎵' },
+      { id: 'vinyl_2', cx: 0.464, cy: 0.043, r: 0.09, label_zh: '海报', label_en: 'Poster', emoji: '🎸' },
+      { id: 'vinyl_3', cx: 0.570, cy: 0.015, r: 0.08, label_zh: '顶部装饰', label_en: 'Top decor', emoji: '🎶' },
     ],
   },
   {
@@ -45,9 +39,9 @@ export const SCENES: SceneDef[] = [
     baseImg: barBase,
     diffImg: barDiff,
     differences: [
-      { id: 'bar_1', cx: 0.3, cy: 0.35, r: 0.12, label_zh: '酒瓶', label_en: 'Bottle', emoji: '🍾' },
-      { id: 'bar_2', cx: 0.72, cy: 0.6, r: 0.12, label_zh: '鸡尾酒', label_en: 'Cocktail', emoji: '🍸' },
-      { id: 'bar_3', cx: 0.5, cy: 0.85, r: 0.10, label_zh: '吧凳', label_en: 'Bar stool', emoji: '🪑' },
+      { id: 'bar_1', cx: 0.680, cy: 0.079, r: 0.11, label_zh: '霓虹灯牌', label_en: 'Neon sign', emoji: '🍸' },
+      { id: 'bar_2', cx: 0.703, cy: 0.262, r: 0.08, label_zh: '酒架物品', label_en: 'Shelf item', emoji: '🍾' },
+      { id: 'bar_3', cx: 0.354, cy: 0.235, r: 0.08, label_zh: '装饰细节', label_en: 'Bar detail', emoji: '🍋' },
     ],
   },
   {
@@ -55,9 +49,9 @@ export const SCENES: SceneDef[] = [
     baseImg: libraryBase,
     diffImg: libraryDiff,
     differences: [
-      { id: 'lib_1', cx: 0.2, cy: 0.3, r: 0.12, label_zh: '书本', label_en: 'Book', emoji: '📚' },
-      { id: 'lib_2', cx: 0.75, cy: 0.5, r: 0.12, label_zh: '地球仪', label_en: 'Globe', emoji: '🌍' },
-      { id: 'lib_3', cx: 0.45, cy: 0.8, r: 0.10, label_zh: '蜡烛', label_en: 'Candle', emoji: '🕯️' },
+      { id: 'lib_1', cx: 0.858, cy: 0.378, r: 0.08, label_zh: '望远镜', label_en: 'Telescope', emoji: '🔭' },
+      { id: 'lib_2', cx: 0.845, cy: 0.112, r: 0.08, label_zh: '相框', label_en: 'Picture frame', emoji: '🖼️' },
+      { id: 'lib_3', cx: 0.836, cy: 0.269, r: 0.08, label_zh: '书架装饰', label_en: 'Shelf decor', emoji: '📚' },
     ],
   },
   {
@@ -65,9 +59,9 @@ export const SCENES: SceneDef[] = [
     baseImg: kitchenBase,
     diffImg: kitchenDiff,
     differences: [
-      { id: 'kitch_1', cx: 0.3, cy: 0.4, r: 0.12, label_zh: '水果碗', label_en: 'Fruit bowl', emoji: '🍎' },
-      { id: 'kitch_2', cx: 0.68, cy: 0.3, r: 0.12, label_zh: '香料瓶', label_en: 'Spice jar', emoji: '🧂' },
-      { id: 'kitch_3', cx: 0.5, cy: 0.75, r: 0.10, label_zh: '窗台植物', label_en: 'Window plant', emoji: '🌱' },
+      { id: 'kitch_1', cx: 0.145, cy: 0.786, r: 0.12, label_zh: '茶巾', label_en: 'Tea towel', emoji: '🧺' },
+      { id: 'kitch_2', cx: 0.262, cy: 0.452, r: 0.08, label_zh: '水果碗', label_en: 'Fruit bowl', emoji: '🍇' },
+      { id: 'kitch_3', cx: 0.298, cy: 0.890, r: 0.08, label_zh: '窗台植物', label_en: 'Window plant', emoji: '🌿' },
     ],
   },
   {
@@ -75,9 +69,9 @@ export const SCENES: SceneDef[] = [
     baseImg: rooftopBase,
     diffImg: rooftopDiff,
     differences: [
-      { id: 'roof_1', cx: 0.25, cy: 0.35, r: 0.12, label_zh: '城市灯光', label_en: 'City lights', emoji: '🌃' },
-      { id: 'roof_2', cx: 0.7, cy: 0.5, r: 0.12, label_zh: '望远镜', label_en: 'Telescope', emoji: '🔭' },
-      { id: 'roof_3', cx: 0.5, cy: 0.8, r: 0.10, label_zh: '花盆', label_en: 'Flower pot', emoji: '🌸' },
+      { id: 'roof_1', cx: 0.328, cy: 0.506, r: 0.08, label_zh: '花盆', label_en: 'Flower pot', emoji: '🌸' },
+      { id: 'roof_2', cx: 0.936, cy: 0.235, r: 0.08, label_zh: '灯笼', label_en: 'Lantern', emoji: '🏮' },
+      { id: 'roof_3', cx: 0.809, cy: 0.305, r: 0.08, label_zh: '装饰灯', label_en: 'Fairy lights', emoji: '✨' },
     ],
   },
 ];

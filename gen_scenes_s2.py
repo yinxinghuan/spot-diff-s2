@@ -1,187 +1,205 @@
 #!/usr/bin/env ~/miniconda3/bin/python3
 """
 Spot the Difference S2 — Scene Base Image Generator
-生成6个全新场景的 base 图 (780×554)
+生成6个场景的 base 图 (780×554)
 """
 
-import os, sys, time, json, ssl, urllib.request, boto3
+import datetime, hashlib, hmac, json, os, ssl, sys, time, urllib.request, urllib.parse
+import numpy as np
 from PIL import Image
 from io import BytesIO
 
-# ── Config ──────────────────────────────────────────────────────────────────
-API_URL     = "http://aiservice.wdabuliu.com:8019/genl_image"
-USER_ID     = 123456
-OUT_DIR     = "src/SpotDiffS2/img/levels"
-IMG_W, IMG_H = 780, 554
-WAIT_SECS   = 78   # 75s rate limit + buffer
+API_URL       = "http://aiservice.wdabuliu.com:8019/genl_image"
+API_TIMEOUT   = 360
+USER_ID       = 123456
+R2_ACCOUNT_ID = "bdccd2c68ff0d2e622994d24dbb1bae3"
+R2_ACCESS_KEY = "b203adb7561b4f8800cbc1fa02424467"
+R2_SECRET_KEY = "e7926e4175b7a0914496b9c999afd914cd1e4af7db8f83e0cf2bfad9773fa2b0"
+R2_BUCKET     = "aigram"
+R2_PUBLIC     = "https://images.aiwaves.tech"
+OUT_DIR       = "src/SpotDiffS2/img/levels"
+TARGET_W, TARGET_H = 780, 554
+WAIT_SECS     = 78
 
-# R2 config (for img2img reference upload)
-R2_ENDPOINT = "https://1d45bc02eda6a12a3a35ff83aae31f72.r2.cloudflarestorage.com"
-R2_BUCKET   = "aigram"
-R2_PUBLIC   = "https://images.aiwaves.tech"
+_SSL = ssl.create_default_context()
+_SSL.check_hostname = False
+_SSL.verify_mode = ssl.CERT_NONE
 
-def make_gradient_ref(w: int, h: int) -> bytes:
-    """Create a neutral gradient reference image for txt2img mode."""
-    img = Image.new("RGB", (w, h))
-    px = img.load()
+
+def _sign(key, msg):
+    return hmac.new(key, msg.encode(), hashlib.sha256).digest()
+
+
+def upload_r2(local_path: str, obj_key: str) -> str:
+    with open(local_path, "rb") as f:
+        data = f.read()
+    host = f"{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+    now = datetime.datetime.now(datetime.timezone.utc)
+    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+    date_stamp = now.strftime("%Y%m%d")
+    region, service, method = "auto", "s3", "PUT"
+    content_type = "image/png"
+    canon_uri = "/" + R2_BUCKET + "/" + urllib.parse.quote(obj_key, safe="/")
+    canon_headers = f"content-type:{content_type}\nhost:{host}\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:{amz_date}\n"
+    signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date"
+    canon_req = f"{method}\n{canon_uri}\n\n{canon_headers}\n{signed_headers}\nUNSIGNED-PAYLOAD"
+    scope = f"{date_stamp}/{region}/{service}/aws4_request"
+    string2sign = f"AWS4-HMAC-SHA256\n{amz_date}\n{scope}\n{hashlib.sha256(canon_req.encode()).hexdigest()}"
+    k = _sign(_sign(_sign(_sign(("AWS4" + R2_SECRET_KEY).encode(), date_stamp), region), service), "aws4_request")
+    sig = hmac.new(k, string2sign.encode(), hashlib.sha256).hexdigest()
+    auth = f"AWS4-HMAC-SHA256 Credential={R2_ACCESS_KEY}/{scope}, SignedHeaders={signed_headers}, Signature={sig}"
+    req = urllib.request.Request(
+        f"https://{host}/{R2_BUCKET}/{urllib.parse.quote(obj_key, safe='/')}",
+        data=data, method="PUT",
+        headers={"Content-Type": content_type, "x-amz-content-sha256": "UNSIGNED-PAYLOAD",
+                 "x-amz-date": amz_date, "Authorization": auth},
+    )
+    urllib.request.urlopen(req, timeout=60, context=_SSL)
+    url = f"{R2_PUBLIC}/{obj_key}"
+    print(f"  ↑ Uploaded → {url}")
+    return url
+
+
+def create_gradient_ref(w: int, h: int, tmp_path: str) -> str:
+    arr = np.zeros((h, w, 3), dtype=np.uint8)
     for y in range(h):
         for x in range(w):
-            r = int(180 * x / w + 40)
-            g = int(160 * y / h + 40)
-            b = int(200 * (1 - x / w) * (1 - y / h) + 40)
-            px[x, y] = (r, g, b)
-    buf = BytesIO()
-    img.save(buf, "PNG")
-    return buf.getvalue()
+            arr[y, x] = [40 + x * 80 // w, 30 + y * 60 // h, 50]
+    Image.fromarray(arr).save(tmp_path, "PNG")
+    return tmp_path
 
-def upload_ref(data: bytes, key: str) -> str:
-    import hashlib, hmac, datetime
-    aws_key    = os.environ.get("R2_ACCESS_KEY", "")
-    aws_secret = os.environ.get("R2_SECRET_KEY", "")
-    if not aws_key:
-        raise RuntimeError("Set R2_ACCESS_KEY and R2_SECRET_KEY env vars")
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=R2_ENDPOINT,
-        aws_access_key_id=aws_key,
-        aws_secret_access_key=aws_secret,
-        region_name="auto",
-    )
-    s3.put_object(Bucket=R2_BUCKET, Key=key, Body=data, ContentType="image/png")
-    return f"{R2_PUBLIC}/{key}"
 
-def call_api(prompt: str, ref_url: str | None = None) -> bytes:
-    params = {"prompt": prompt, "user_id": USER_ID}
-    if ref_url:
-        params["url"] = ref_url
-    payload = json.dumps({"query": "", "params": params}).encode()
-    req = urllib.request.Request(
-        API_URL,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    with urllib.request.urlopen(req, timeout=360, context=ctx) as r:
-        resp = json.loads(r.read())
-    if resp.get("code") != 200:
-        raise RuntimeError(f"API error: {resp}")
-    img_url = resp["url"]
-    with urllib.request.urlopen(img_url, context=ctx) as r:
-        return r.read()
+def call_api(ref_url: str, prompt: str) -> str:
+    payload = json.dumps({"query": "", "params": {"url": ref_url, "prompt": prompt, "user_id": USER_ID}}).encode()
+    req = urllib.request.Request(API_URL, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    resp = urllib.request.urlopen(req, timeout=API_TIMEOUT)
+    result = json.loads(resp.read())
+    return result.get("image_url") or result.get("url") or result.get("result", {}).get("image_url", "")
 
-def save_image(data: bytes, path: str):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    img = Image.open(BytesIO(data)).convert("RGB")
-    img = img.resize((IMG_W, IMG_H), Image.LANCZOS)
-    img.save(path, "PNG")
-    print(f"  Saved {path} ({img.size})")
 
-# ── Scene definitions ────────────────────────────────────────────────────────
+def download_and_save(url: str, out_path: str):
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            data = urllib.request.urlopen(req, timeout=60, context=_SSL).read()
+            img = Image.open(BytesIO(data)).convert("RGB")
+            img = img.resize((TARGET_W, TARGET_H), Image.LANCZOS)
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            img.save(out_path, "PNG")
+            print(f"  ✓ Saved {out_path}")
+            return
+        except Exception as e:
+            print(f"  ⚠ Attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(5)
+    raise RuntimeError(f"Failed to download {url}")
+
+
 SCENES = [
     {
         "id": "cafe",
         "prompt": (
             "cozy indie coffee shop interior, warm afternoon light, "
             "vintage espresso machine on wooden counter, artisan pastries under glass dome, "
-            "chalkboard menu with handwritten text, small round tables, "
-            "potted plants and succulents on windowsill, framed indie art on walls, "
-            "hanging Edison bulbs, coffee grinder, ceramic mugs stacked, "
-            "notebook and pen on table, cozy textured atmosphere, "
-            "detailed interior photography, rich colors, lots of objects"
+            "chalkboard menu with handwritten text, small round tables with chairs, "
+            "potted succulents on windowsill, framed indie art on walls, "
+            "hanging Edison bulbs, ceramic coffee grinder, colorful mugs stacked, "
+            "open notebook and pen on table, wood and tile floor, "
+            "detailed interior, rich warm colors, many objects visible"
         ),
     },
     {
         "id": "vinyl",
         "prompt": (
             "retro vinyl record shop interior, wall-to-wall shelves packed with vinyl records, "
-            "vintage turntable on wooden listening station, neon 'RECORDS' sign glowing purple, "
-            "cassette tapes display rack, band posters and album art on walls, "
-            "vintage amplifier and speakers, crate digging bins, "
-            "old jukebox in corner, string lights, music memorabilia, "
-            "warm moody lighting, lots of details, rich retro atmosphere"
+            "vintage turntable on wooden listening station with headphones, "
+            "neon RECORDS sign glowing purple on wall, cassette tapes display rack, "
+            "band posters and album art covering walls, vintage amplifier and speakers, "
+            "crate digging bins filled with records, old jukebox in corner, "
+            "string lights, music memorabilia and stickers, wooden floor, "
+            "warm moody lighting, many objects, rich retro atmosphere"
         ),
     },
     {
         "id": "bar",
         "prompt": (
-            "stylish neon night bar interior, backlit shelves lined with colorful bottles, "
-            "cocktail glasses and shakers on bar counter, neon signs glowing pink and blue, "
-            "dimly lit warm atmosphere, leather bar stools, "
-            "cocktail ingredients and garnishes, ice bucket, citrus fruits, "
-            "coasters and cocktail menus, vintage photos on walls, "
-            "pendant lights overhead, bokeh background, cinematic nightlife mood"
+            "stylish neon night bar interior, backlit glass shelves lined with spirit bottles, "
+            "cocktail glasses and shaker on bar counter, pink neon OPEN sign, "
+            "dimly lit warm atmosphere, bar stools at counter, "
+            "citrus fruits and cocktail garnishes, ice bucket, cocktail menu cards, "
+            "pendant lights, blurred bokeh background lights, "
+            "vintage black and white photos on walls, dark wood and brass details, "
+            "cinematic moody nightlife atmosphere, many bar objects"
         ),
     },
     {
         "id": "library",
         "prompt": (
-            "cozy private library reading room, floor-to-ceiling wooden bookshelves "
-            "packed with colorful books, vintage globe on reading desk, "
-            "leather armchair with throw blanket, reading lamp casting warm light, "
-            "antique wooden desk with open books and papers, "
-            "candles in holders, inkwell and quill pen, vintage maps and prints, "
-            "framed certificates, brass telescope, magnifying glass, "
-            "richly detailed interior, warm amber lighting"
+            "cozy private library reading room, floor-to-ceiling dark wooden bookshelves "
+            "packed with colorful hardcover books, vintage globe on oak reading desk, "
+            "leather armchair with plaid throw blanket beside window, "
+            "reading lamp casting warm golden light, open books and papers on desk, "
+            "candles in brass holders, inkwell and quill pen, "
+            "framed certificates and vintage maps on wall, brass telescope, magnifying glass, "
+            "Persian rug on floor, warm amber fireplace glow, rich detailed interior"
         ),
     },
     {
         "id": "kitchen",
         "prompt": (
-            "bright modern kitchen interior, colorful fruit bowl on marble countertop, "
-            "organized spice rack with labeled jars, herb plants in pots on windowsill, "
-            "sleek coffee machine, ceramic dishes stacked in open shelves, "
-            "cutting board with vegetables, cookbook open on stand, "
-            "hanging copper pots and pans, refrigerator with magnets, "
-            "tea towels, wooden utensil holder, natural morning light streaming in, "
-            "clean and vibrant kitchen atmosphere, lots of objects and details"
+            "bright modern kitchen interior, colorful fruit bowl with apples and oranges "
+            "on white marble countertop, organized spice rack with labeled jars, "
+            "fresh herb plants in terracotta pots on sunny windowsill, "
+            "sleek silver espresso machine, white ceramic dishes on open shelves, "
+            "cutting board with vegetables, cookbook open on wooden stand, "
+            "hanging copper pots and pans, refrigerator with magnets and notes, "
+            "striped tea towels, wooden utensil holder, natural morning light, "
+            "many kitchen objects, clean fresh atmosphere"
         ),
     },
     {
         "id": "rooftop",
         "prompt": (
-            "rooftop terrace at night, city skyline with glowing skyscraper lights, "
-            "fairy string lights draped overhead, small telescope on tripod, "
-            "potted flowers and plants in terracotta pots, bistro chairs and table, "
-            "citronella candles, starry sky above, urban rooftop garden, "
-            "hanging lanterns, succulent wall garden, "
-            "warm golden ambient lighting, cinematic night atmosphere, "
-            "lots of details and objects, beautiful composition"
+            "rooftop terrace at night, city skyline with glowing skyscraper lights behind, "
+            "warm fairy string lights draped overhead in zigzag pattern, "
+            "brass telescope on tripod aimed at stars, "
+            "pink and white flowers in terracotta pots, metal bistro chairs and table, "
+            "citronella candles in glass holders, clear starry night sky, "
+            "succulent wall garden on brick wall, hanging paper lanterns, "
+            "wooden deck floor, cozy urban garden atmosphere, many decorative objects"
         ),
     },
 ]
 
+
 def main():
-    # Upload gradient reference for txt2img
-    ts = int(time.time())
-    print("Uploading gradient reference image...")
-    grad_data = make_gradient_ref(IMG_W, IMG_H)
+    ts = int(time.time() * 1000)
+    tmp_ref = f"/tmp/s2_gradient_ref_{ts}.png"
+    create_gradient_ref(TARGET_W, TARGET_H, tmp_ref)
     ref_key = f"refs/spot-diff-s2/gradient_{ts}.png"
-    ref_url = upload_ref(grad_data, ref_key)
-    print(f"  Ref URL: {ref_url}")
+    print("Uploading gradient reference...")
+    ref_url = upload_r2(tmp_ref, ref_key)
+    os.remove(tmp_ref)
 
     for i, scene in enumerate(SCENES):
         sid = scene["id"]
         out_path = f"{OUT_DIR}/{sid}/base.png"
 
-        if os.path.exists(out_path) and os.path.getsize(out_path) > 1000:
-            print(f"[{i+1}/6] {sid}: already exists, skipping")
+        if os.path.exists(out_path) and os.path.getsize(out_path) > 5000:
+            print(f"[{i+1}/{len(SCENES)}] {sid}: already exists, skipping")
             continue
 
-        print(f"[{i+1}/6] Generating {sid}...")
-        try:
-            data = call_api(scene["prompt"], ref_url=ref_url)
-            save_image(data, out_path)
-        except Exception as e:
-            print(f"  ERROR: {e}")
+        print(f"\n[{i+1}/{len(SCENES)}] Generating {sid}...")
+        result_url = call_api(ref_url, scene["prompt"])
+        print(f"  ↓ {result_url}")
+        download_and_save(result_url, out_path)
 
         if i < len(SCENES) - 1:
             print(f"  Waiting {WAIT_SECS}s (rate limit)...")
             time.sleep(WAIT_SECS)
 
-    print("\nAll scenes generated! Run gen_diffs_s2.py next.")
+    print("\n✓ All scenes done! Run gen_diffs_s2.py next.")
+
 
 if __name__ == "__main__":
     main()
