@@ -31,7 +31,6 @@ const SpotDiffS2: React.FC = () => {
     cooldown,
     hintTarget,
     levels,
-    contactsLoading,
     goHome,
     goToSelect,
     startLevel,
@@ -40,13 +39,11 @@ const SpotDiffS2: React.FC = () => {
     nextLevel,
   } = useSpotDiffS2();
 
-  // Show splash until both assets/timer AND contacts are ready
   if (showSplash) {
     return (
       <SplashScreen
         levels={levels}
         onDone={() => setShowSplash(false)}
-        waitFor={contactsLoading}
       />
     );
   }
@@ -56,8 +53,8 @@ const SpotDiffS2: React.FC = () => {
       {/* Watermark */}
       <img className="sd__watermark" src={aigramLogo} alt="" draggable={false} />
 
-      {/* === IDLE / Title Screen === */}
-      {phase === 'idle' && (
+      {/* === IDLE / Title Screen (also show while contacts are loading) === */}
+      {(phase === 'idle' || phase === 'loading') && (
         <div className="sd__title">
           <div className="sd__title-top">
             <div className="sd__title-magnifier">🔍</div>
