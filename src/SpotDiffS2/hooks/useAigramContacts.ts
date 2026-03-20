@@ -21,63 +21,94 @@ function getUrlParams(): { apiOrigin: string | null; telegramId: string | null }
   };
 }
 
-async function fetchContactsViaPostMessage(
+function postMessageCall(
   apiOrigin: string,
-  telegramId: string
-): Promise<AigramContact[]> {
+  url: string,
+  timeoutMs = 8000
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const requestId = crypto.randomUUID();
-
     const payload = {
-      url: `/note/telegram/user/contact/list?telegram_id=${telegramId}`,
+      url,
       method: 'GET',
       data: null,
       request_id: requestId,
       emitter: window.location.origin,
     };
-
-    // Use js-base64 loaded via CDN on the page, or inline btoa
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 
-    const timeout = setTimeout(() => {
+    const timer = setTimeout(() => {
       window.removeEventListener('message', handler);
       reject(new Error('API timeout'));
-    }, 10000);
+    }, timeoutMs);
 
     function handler(event: MessageEvent) {
       if (typeof event.data !== 'string') return;
       if (!event.data.startsWith('callAPIResult-')) return;
-
       try {
         const raw = event.data.slice('callAPIResult-'.length);
         const result = JSON.parse(decodeURIComponent(escape(atob(raw))));
         if (result.request_id !== requestId) return;
-
-        clearTimeout(timeout);
+        clearTimeout(timer);
         window.removeEventListener('message', handler);
-
         if (!result.success) {
           reject(new Error(result.error || 'API error'));
           return;
         }
-
-        const contacts: AigramContact[] = (result.data || [])
-          .slice(0, MAX_CONTACTS)
-          .map((u: { telegram_id: string; name: string; domain_sub_name?: string; head_url: string }) => ({
-            telegram_id: String(u.telegram_id),
-            name: u.domain_sub_name || u.name,
-            head_url: u.head_url || '',
-          }));
-
-        resolve(contacts);
+        resolve(result.data);
       } catch {
-        // not our message, ignore
+        // not our message
       }
     }
 
     window.addEventListener('message', handler);
     window.parent.postMessage(`callAPI-${encoded}`, apiOrigin);
   });
+}
+
+async function fetchUserName(apiOrigin: string, telegramId: string): Promise<string | null> {
+  try {
+    const data = await postMessageCall(
+      apiOrigin,
+      `/note/telegram/user/get/info/by/telegram_id?telegram_id=${telegramId}`,
+      5000
+    ) as { name?: string } | null;
+    return data?.name || null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchContactsViaPostMessage(
+  apiOrigin: string,
+  telegramId: string
+): Promise<AigramContact[]> {
+  const data = await postMessageCall(
+    apiOrigin,
+    `/note/telegram/user/contact/list?telegram_id=${telegramId}`,
+    10000
+  ) as Array<{ telegram_id: string; name?: string; head_url?: string }> | null;
+
+  const raw: AigramContact[] = (Array.isArray(data) ? data : [])
+    .slice(0, MAX_CONTACTS)
+    .map((u) => ({
+      telegram_id: String(u.telegram_id),
+      name: u.name || '',
+      head_url: u.head_url || '',
+    }));
+
+  if (raw.length === 0) return [];
+
+  // Enrich contacts that have no name via individual user lookup
+  const enriched = await Promise.all(
+    raw.map(async (contact) => {
+      if (contact.name) return contact;
+      const name = await fetchUserName(apiOrigin, contact.telegram_id);
+      return { ...contact, name: name || contact.telegram_id };
+    })
+  );
+
+  return enriched;
 }
 
 export interface UseAigramContactsResult {
