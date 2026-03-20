@@ -63,9 +63,9 @@ async function fetchContactsViaPostMessage(
 
         const contacts: AigramContact[] = (result.data || [])
           .slice(0, MAX_CONTACTS)
-          .map((u: { telegram_id: string; name: string; head_url: string }) => ({
+          .map((u: { telegram_id: string; name: string; domain_sub_name?: string; head_url: string }) => ({
             telegram_id: String(u.telegram_id),
-            name: u.name,
+            name: u.domain_sub_name || u.name,
             head_url: u.head_url || '',
           }));
 
