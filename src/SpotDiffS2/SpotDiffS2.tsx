@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useGameScore, Leaderboard } from '@shared/leaderboard';
 import { useSpotDiffS2 } from './hooks/useSpotDiffS2';
 import { t, getLocale } from './i18n';
 import SplashScreen from './components/SplashScreen';
@@ -14,6 +15,9 @@ const POINTS_PER_FIND = 100;
 
 const SpotDiffS2: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { isInAigram, submitScore, fetchGlobalLeaderboard, fetchFriendsLeaderboard } = useGameScore('spot-diff-s2');
+
   const {
     phase,
     save,
@@ -39,6 +43,14 @@ const SpotDiffS2: React.FC = () => {
     nextLevel,
   } = useSpotDiffS2();
 
+  // 每关完成时提交累计总分
+  useEffect(() => {
+    if (phase === 'complete' || phase === 'allClear') {
+      const total = Object.values(save?.results ?? {}).reduce((sum, r) => sum + (r?.score ?? 0), 0);
+      if (total > 0) submitScore(total);
+    }
+  }, [phase]);
+
   if (showSplash) {
     return (
       <SplashScreen
@@ -50,6 +62,15 @@ const SpotDiffS2: React.FC = () => {
 
   return (
     <div className="sd">
+      {showLeaderboard && (
+        <Leaderboard
+          gameName="Spot the Difference S2"
+          isInAigram={isInAigram}
+          onClose={() => setShowLeaderboard(false)}
+          fetchGlobal={fetchGlobalLeaderboard}
+          fetchFriends={fetchFriendsLeaderboard}
+        />
+      )}
       {/* Watermark */}
       <img className="sd__watermark" src={aigramLogo} alt="" draggable={false} />
 
@@ -78,6 +99,7 @@ const SpotDiffS2: React.FC = () => {
             >
               {t('startBtn')}
             </button>
+            <button className="sd__lb-icon" onPointerDown={() => setShowLeaderboard(true)}>🏆</button>
           </div>
           <img className="sd__title-watermark" src={aigramLogo} alt="" draggable={false} />
         </div>
