@@ -63,6 +63,15 @@ const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
 // ─── Component ────────────────────────────────────────────────────────────
 
+function openProfile(telegramId: string) {
+  const apiOrigin = new URLSearchParams(window.location.search).get('api_origin');
+  if (!apiOrigin) return;
+  try {
+    const encoded = btoa(JSON.stringify({ id: telegramId }));
+    window.parent.postMessage(`AW.PROFILE.OPEN-${encoded}`, apiOrigin);
+  } catch { /* ignore */ }
+}
+
 export default function Leaderboard({ gameName, isInAigram, onClose, fetchGlobal, fetchFriends }: Props) {
   const [tab, setTab] = useState<Tab>('global');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -134,8 +143,9 @@ export default function Leaderboard({ gameName, isInAigram, onClose, fetchGlobal
           {!loading && entries.map((entry, i) => (
             <div
               key={entry.telegram_id}
-              className={`lb-row ${entry.isMe ? 'lb-row--me' : ''} ${i < 3 ? 'lb-row--top' : ''}`}
+              className={`lb-row ${entry.isMe ? 'lb-row--me' : ''} ${i < 3 ? 'lb-row--top' : ''} ${isInAigram ? 'lb-row--clickable' : ''}`}
               style={i < 3 ? { '--medal-color': MEDAL_COLORS[i] } as CSSProperties : undefined}
+              onPointerDown={isInAigram ? () => openProfile(entry.telegram_id) : undefined}
             >
               <div className="lb-row__rank">
                 {i < 3
