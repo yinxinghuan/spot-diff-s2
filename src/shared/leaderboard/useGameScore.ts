@@ -120,12 +120,21 @@ export function useGameScore(gameId: string) {
 
   const fetchFriendsLeaderboard = useCallback(async (): Promise<LeaderboardEntry[]> => {
     if (!isInAigram || !telegramId || !apiOrigin) return [];
+
+    // Start with current user, add contacts if fetch succeeds
+    const friendIds = new Set<string>([telegramId]);
     try {
       const contacts = await callAigramAPI<AigramResponse<AigramUser[]>>(
         apiOrigin,
         `/note/telegram/user/contact/list?telegram_id=${telegramId}`
       );
-      const ids = [telegramId, ...contacts.data.map(f => f.telegram_id)].join(',');
+      // Aigram may return { data: [...] } or a direct array — handle both
+      const list: AigramUser[] = Array.isArray(contacts) ? contacts : (contacts?.data ?? []);
+      list.forEach(f => { if (f.telegram_id) friendIds.add(String(f.telegram_id)); });
+    } catch { /* contacts fetch failed — still query with current user only */ }
+
+    try {
+      const ids = [...friendIds].join(',');
       const res = await fetch(
         `${GAMES_API}/leaderboard?game_id=${gameId}&telegram_ids=${encodeURIComponent(ids)}`
       );
