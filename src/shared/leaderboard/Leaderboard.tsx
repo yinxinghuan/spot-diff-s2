@@ -90,8 +90,8 @@ export default function Leaderboard({ gameName, isInAigram, onClose, fetchGlobal
   useEffect(() => { load(tab); }, [tab]);
 
   return (
-    <div className="lb-backdrop" onPointerDown={onClose}>
-      <div className="lb-panel" onPointerDown={e => e.stopPropagation()}>
+    <div className="lb-backdrop" onPointerDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="lb-panel">
 
         {/* Header */}
         <div className="lb-header">
@@ -145,7 +145,7 @@ export default function Leaderboard({ gameName, isInAigram, onClose, fetchGlobal
               key={entry.telegram_id}
               className={`lb-row ${entry.isMe ? 'lb-row--me' : ''} ${i < 3 ? 'lb-row--top' : ''} ${isInAigram ? 'lb-row--clickable' : ''}`}
               style={i < 3 ? { '--medal-color': MEDAL_COLORS[i] } as CSSProperties : undefined}
-              onPointerDown={isInAigram ? () => openProfile(entry.telegram_id) : undefined}
+              onClick={isInAigram ? () => openProfile(entry.telegram_id) : undefined}
             >
               <div className="lb-row__rank">
                 {i < 3
