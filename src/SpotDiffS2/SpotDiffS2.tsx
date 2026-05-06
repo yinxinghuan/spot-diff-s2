@@ -9,6 +9,7 @@ import LevelSelect from './components/LevelSelect';
 import ImagePair from './components/ImagePair';
 import CharBubble from './components/CharBubble';
 import HintButton from './components/HintButton';
+import TitlePulses from './components/TitlePulses';
 import aigramLogo from './img/aigram.svg';
 import { playClick, resumeAudio } from './utils/sounds';
 import './SpotDiff.less';
@@ -95,6 +96,7 @@ const SpotDiffS2: React.FC = () => {
       {/* === IDLE / Title Screen (also show while contacts are loading) === */}
       {(phase === 'idle' || phase === 'loading') && (
         <div className="sd__title">
+          <TitlePulses />
           <div className="sd__title-top">
             <div className="sd__title-magnifier">🔍</div>
             <div className="sd__title-badge">SEASON II</div>
