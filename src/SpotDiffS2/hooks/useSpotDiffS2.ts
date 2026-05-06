@@ -5,7 +5,21 @@ import { getLocale } from '../i18n';
 import { useAigramContacts } from './useAigramContacts';
 import { resumeAudio, playTap, playFound, playWrong, playHint, playComplete, playStart } from '../utils/sounds';
 
-const STORAGE_KEY = 'sd2_save';
+const STORAGE_KEY = 'spot-diff-s2-save';
+const LEGACY_STORAGE_KEY = 'sd2_save';
+
+// One-time migration from legacy key so cloud sync (which uses STORAGE_KEY)
+// inherits existing local progress.
+(function migrateLegacySave() {
+  try {
+    const old = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (old && !localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, old);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
+  } catch { /* private mode / quota — ignore */ }
+})();
+
 const POINTS_PER_FIND = 100;
 const TIME_BONUS_MAX = 300;
 const TIME_PENALTY_RATE = 2;
@@ -98,8 +112,15 @@ function getSceneDialogue(sceneId: string, type: 'start' | 'found' | 'wrong' | '
 
 export type BubbleMood = 'normal' | 'happy';
 
-export function useSpotDiffS2() {
+export interface UseSpotDiffS2Options {
+  /** Cloud persistence callback. Local writes also fire this so cloud stays in sync. */
+  persist?: (data: SaveData) => void;
+}
+
+export function useSpotDiffS2(options: UseSpotDiffS2Options = {}) {
   const { contacts, loading: contactsLoading } = useAigramContacts();
+  const persistRef = useRef(options.persist);
+  persistRef.current = options.persist;
 
   // Build levels by merging scenes + contacts
   const levels: LevelDef[] = SCENES.map((scene, idx) => {
@@ -219,6 +240,7 @@ export function useSpotDiffS2() {
     }
 
     writeSave(newSave);
+    persistRef.current?.(newSave);
     setSave(newSave);
     setIsNewRecord(isRecord);
     setPhase('complete');
@@ -301,9 +323,16 @@ export function useSpotDiffS2() {
     }
   }, [currentLevel, levels, startLevel]);
 
+  /** Adopt cloud-loaded save (called by parent once useGameSave resolves). */
+  const adoptSave = useCallback((data: SaveData) => {
+    setSave(data);
+    writeSave(data);
+  }, []);
+
   return {
     phase,
     save,
+    adoptSave,
     currentLevel,
     foundIds,
     time,
