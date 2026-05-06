@@ -1,0 +1,60 @@
+.sd-pulses {
+  position: absolute;
+  inset: 0;
+  z-index: 1;  // behind the centered title content
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sd-pulse {
+  position: absolute;
+  width: var(--pulse-size, 32px);
+  height: var(--pulse-size, 32px);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  animation-name: sd-pulse-ripple;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-out;
+
+  &--gold {
+    border: 2px solid rgba(200, 168, 96, 0.65);
+    box-shadow:
+      inset 0 0 0 1px rgba(200, 168, 96, 0.2),
+      0 0 14px rgba(200, 168, 96, 0.18);
+  }
+  &--red {
+    border: 2px solid rgba(220, 80, 70, 0.65);
+    box-shadow:
+      inset 0 0 0 1px rgba(220, 80, 70, 0.2),
+      0 0 14px rgba(220, 80, 70, 0.18);
+  }
+  // crosshair "scope" reticle
+  &--reticle {
+    border: 1px dashed rgba(200, 168, 96, 0.6);
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      background: rgba(200, 168, 96, 0.55);
+    }
+    &::before {
+      left: 50%; top: -12%;
+      width: 1px; height: 124%;
+      transform: translateX(-50%);
+    }
+    &::after {
+      top: 50%; left: -12%;
+      width: 124%; height: 1px;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+@keyframes sd-pulse-ripple {
+  0%   { opacity: 0;    transform: translate(-50%, -50%) scale(0.55); }
+  18%  { opacity: 0.95; transform: translate(-50%, -50%) scale(1); }
+  55%  { opacity: 0.55; transform: translate(-50%, -50%) scale(1.45); }
+  85%  { opacity: 0;    transform: translate(-50%, -50%) scale(1.85); }
+  100% { opacity: 0;    transform: translate(-50%, -50%) scale(0.55); }
+}
