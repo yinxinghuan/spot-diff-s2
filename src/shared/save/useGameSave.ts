@@ -1,9 +1,28 @@
+// Per-user game save sync. Reads/writes through the Aigram platform's
+// session-scoped save endpoints. Same public API as before — `gameId`
+// argument retained for localStorage key namespacing; cloud scoping is now
+// the per-game UUID (`session_id`) from @shared/runtime/game-id.
+//
+// Wire shape note: the platform's get/data/list returns the **6 most recent
+// users' latest** saves for this session. To support the legacy
+// "load my own save" contract, we filter the list to the current
+// telegram_id. Other entries are discarded by this hook (a future hook
+// could expose them for social features).
+
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  callAigramAPI,
+  postAigramAPI,
+  isInAigram,
+  telegramId,
+  type AigramResponse,
+} from '../runtime/bridge';
+import { getGameUuid } from '../runtime/game-id';
 
-const GAMES_API = 'https://games-api.xinghuan-yin.workers.dev';
-
-function getTelegramId(): string | null {
-  return new URLSearchParams(window.location.search).get('telegram_id');
+interface SaveRow {
+  user_id: string;
+  time: string;
+  resource_data: string;
 }
 
 export interface UseGameSave<T> {
@@ -20,35 +39,42 @@ export interface UseGameSave<T> {
 }
 
 /**
- * Per-user save sync. Mirrors the {@link useGameScore} pattern:
- * cloud writes are namespaced by `telegram_id` from URL params (Aigram miniapp);
- * localStorage is the offline fallback and source of truth between writes.
+ * Per-user save sync. `gameId` only namespaces the localStorage key — cloud
+ * scoping is always the game's permanent UUID, set via @shared/runtime/
+ * setGameUuid at boot.
  */
 export function useGameSave<T>(gameId: string): UseGameSave<T> {
   const [savedData, setSavedData] = useState<T | null | undefined>(undefined);
   const lsKey = `${gameId}-save`;
-  const telegramId = getTelegramId();
+  const sessionId = getGameUuid();
+  const canSync = isInAigram && !!sessionId && !!telegramId;
   const cloudTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingCloudRef = useRef<string | null>(null);
+  const pendingDataRef = useRef<T | null>(null);
 
   // Initial load: cloud → localStorage → null
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (telegramId) {
+      if (canSync && sessionId && telegramId) {
         try {
-          const res = await fetch(`${GAMES_API}/save?game_id=${gameId}&telegram_id=${telegramId}`);
-          if (res.ok) {
-            const json = await res.json();
-            if (json && typeof json.data === 'string') {
-              try {
-                const save = JSON.parse(json.data) as T;
-                if (!cancelled) setSavedData(save);
-                return;
-              } catch { /* corrupt cloud save — fall through to local */ }
+          const res = await callAigramAPI<AigramResponse<SaveRow[]>>(
+            `/note/aigram/ai/game/get/data/list?session_id=${encodeURIComponent(sessionId)}`,
+            'GET',
+          );
+          const rows: SaveRow[] = Array.isArray(res?.data) ? res.data : [];
+          const mine = rows.find(r => r.user_id === telegramId);
+          if (mine && mine.resource_data) {
+            try {
+              const save = JSON.parse(mine.resource_data) as T;
+              if (!cancelled) setSavedData(save);
+              return;
+            } catch {
+              /* corrupt cloud save — fall through to local */
             }
           }
-        } catch { /* network — fall through */ }
+        } catch {
+          /* network / bridge — fall through */
+        }
       }
       try {
         const raw = localStorage.getItem(lsKey);
@@ -57,36 +83,43 @@ export function useGameSave<T>(gameId: string): UseGameSave<T> {
           if (!cancelled) setSavedData(save);
           return;
         }
-      } catch { /* corrupt local — fall through */ }
+      } catch {
+        /* corrupt local — fall through */
+      }
       if (!cancelled) setSavedData(null);
     })();
-    return () => { cancelled = true; };
-  }, [gameId, telegramId, lsKey]);
+    return () => {
+      cancelled = true;
+    };
+  }, [canSync, sessionId, lsKey]);
 
   const flushCloud = useCallback(() => {
-    const body = pendingCloudRef.current;
-    pendingCloudRef.current = null;
+    const payload = pendingDataRef.current;
+    pendingDataRef.current = null;
     cloudTimerRef.current = null;
-    if (!body || !telegramId) return;
-    fetch(`${GAMES_API}/save`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    }).catch(() => { /* ignore */ });
-  }, [telegramId]);
+    if (payload == null || !canSync || !sessionId) return;
+    postAigramAPI('/note/aigram/ai/game/save/data', {
+      session_id: sessionId,
+      resource_data: JSON.stringify(payload),
+    });
+  }, [canSync, sessionId]);
 
-  const persist = useCallback((data: T) => {
-    const withTs = { ...(data as object), _lastActive: Date.now() };
-    const json = JSON.stringify(withTs);
-    try {
-      localStorage.setItem(lsKey, json);
-    } catch { /* quota / private mode */ }
-    if (telegramId) {
-      pendingCloudRef.current = JSON.stringify({ game_id: gameId, telegram_id: telegramId, data: json });
-      if (cloudTimerRef.current) clearTimeout(cloudTimerRef.current);
-      cloudTimerRef.current = setTimeout(flushCloud, 1000);
-    }
-  }, [gameId, telegramId, lsKey, flushCloud]);
+  const persist = useCallback(
+    (data: T) => {
+      const withTs = { ...(data as object), _lastActive: Date.now() } as T;
+      try {
+        localStorage.setItem(lsKey, JSON.stringify(withTs));
+      } catch {
+        /* quota / private mode */
+      }
+      if (canSync) {
+        pendingDataRef.current = withTs;
+        if (cloudTimerRef.current) clearTimeout(cloudTimerRef.current);
+        cloudTimerRef.current = setTimeout(flushCloud, 1000);
+      }
+    },
+    [canSync, lsKey, flushCloud],
+  );
 
   // Flush any pending write on unmount so we don't lose the latest save.
   useEffect(() => {
@@ -99,24 +132,26 @@ export function useGameSave<T>(gameId: string): UseGameSave<T> {
   }, [flushCloud]);
 
   const clear = useCallback(async () => {
-    if (cloudTimerRef.current) { clearTimeout(cloudTimerRef.current); cloudTimerRef.current = null; }
-    pendingCloudRef.current = null;
+    if (cloudTimerRef.current) {
+      clearTimeout(cloudTimerRef.current);
+      cloudTimerRef.current = null;
+    }
+    pendingDataRef.current = null;
     try {
       localStorage.removeItem(lsKey);
-    } catch { /* ignore */ }
-    if (telegramId) {
-      // Use the same PUT endpoint as persist (write empty payload) so we don't
-      // depend on the worker implementing DELETE.
-      try {
-        await fetch(`${GAMES_API}/save`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ game_id: gameId, telegram_id: telegramId, data: '' }),
-        });
-      } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
+    if (canSync && sessionId) {
+      // No DELETE in the new API — write an empty payload. Consumers should
+      // treat an empty resource_data as no-save (see the load path above).
+      postAigramAPI('/note/aigram/ai/game/save/data', {
+        session_id: sessionId,
+        resource_data: '',
+      });
     }
     setSavedData(null);
-  }, [gameId, telegramId, lsKey]);
+  }, [canSync, sessionId, lsKey]);
 
   return {
     savedData,
