@@ -12,10 +12,10 @@ const LEGACY_STORAGE_KEY = 'sd2_save';
 // inherits existing local progress.
 (function migrateLegacySave() {
   try {
-    const old = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (old && !localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, old);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const old = alteruLocalStorage.getItem(LEGACY_STORAGE_KEY);
+    if (old && !alteruLocalStorage.getItem(STORAGE_KEY)) {
+      alteruLocalStorage.setItem(STORAGE_KEY, old);
+      alteruLocalStorage.removeItem(LEGACY_STORAGE_KEY);
     }
   } catch { /* private mode / quota — ignore */ }
 })();
@@ -32,14 +32,14 @@ const COOLDOWN_MS = 500;
 
 function loadSave(): SaveData {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = alteruLocalStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
   return { unlocked: 1, results: {} };
 }
 
 function writeSave(data: SaveData) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  alteruLocalStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
 function calcScore(found: number, time: number, errors: number, hints: number): number {

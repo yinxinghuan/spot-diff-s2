@@ -33,7 +33,7 @@ const MESSAGES: Record<string, Record<Locale, string>> = {
 };
 
 function detectLocale(): Locale {
-  const override = localStorage.getItem('sd2_locale');
+  const override = alteruLocalStorage.getItem('sd2_locale');
   if (override === 'en' || override === 'zh') return override;
   return navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 }
@@ -56,7 +56,7 @@ export function t(key: string, vars?: { n?: number | string }): string {
 export function useLocale() {
   const setLocale = (l: Locale) => {
     currentLocale = l;
-    localStorage.setItem('sd2_locale', l);
+    alteruLocalStorage.setItem('sd2_locale', l);
   };
   return { t, locale: currentLocale, setLocale };
 }
